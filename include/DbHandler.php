@@ -347,6 +347,34 @@ class DbHandler {
         return $tasks;
     }
 
+    public function getAllMaterial($user_id) {
+        $stmt = $this->conn->prepare("SELECT t.* FROM material t");
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
+    }
+
+    public function createPegawai($id_pegawai, $nama_pegawai, $panggilan_pegawai, $jabatan, $status, $username) {
+        $response = array();
+
+        $stmt = $this->conn->prepare("INSERT INTO pegawai(id_pegawai, nama_pegawai, panggilan_pegawai, jabatan, status, username) values(?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssssss", $id_pegawai, $nama_pegawai, $panggilan_pegawai, $jabatan, $status, $username);
+        $result = $stmt->execute();
+        $stmt->close();
+
+        // Check for successful insertion
+        if ($result) {
+            // User successfully inserted
+            return ALAT_USER_CREATED_SUCCESSFULLY;
+        } else {
+            // Failed to create user
+            return ALAT_USER_CREATE_FAILED;
+        }
+   
+        return $response;
+    }
+
     public function getAlatUserById($id_alat) {
         $stmt = $this->conn->prepare("SELECT t.* FROM alatuser t WHERE t.id = ?");
         $stmt->bind_param("s", $id_alat);
@@ -360,7 +388,7 @@ class DbHandler {
 
         // Generating API key
         $api_key = $this->generateApiKey();
-	$date = date('Y-m-d G:i:s');
+	    $date = date('Y-m-d G:i:s');
         // insert query
         $stmt = $this->conn->prepare("INSERT INTO dataalat(kode, tanggal_produksi) values(?, ?)");
         $stmt->bind_param("ss", $api_key, $date);

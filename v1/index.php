@@ -254,7 +254,7 @@ $app->get('/getalatuser/:id', 'authenticate', function($id_alat) use ($app){
         $tmp["id"] = $task["id"];
         $tmp["kode_alat"] = $task["kode_alat"];
         $tmp["id_user"] = $task["id_user"];
-	$tmp["nama"] = $task["nama"];
+	    $tmp["nama"] = $task["nama"];
         $tmp["latitude"] = $task["latitude"];
         $tmp["longitude"] = $task["longitude"];
         $tmp["rssi"] = $task["rssi"];
@@ -284,7 +284,7 @@ $app->get('/getalatuser', 'authenticate', function() use ($app){
         $tmp["id"] = $task["id"];
         $tmp["kode_alat"] = $task["kode_alat"];
         $tmp["id_user"] = $task["id_user"];
-	$tmp["nama"] = $task["nama"];
+	    $tmp["nama"] = $task["nama"];
         $tmp["latitude"] = $task["latitude"];
         $tmp["longitude"] = $task["longitude"];
         $tmp["rssi"] = $task["rssi"];
@@ -294,6 +294,59 @@ $app->get('/getalatuser', 'authenticate', function() use ($app){
         array_push($response["tasks"], $tmp);
     }
     echoRespnse(200, $response);
+});
+
+$app->get('/getMaterial', 'authenticate', function() use ($app){
+    global $user_id;
+    $response = array();
+    $db = new DbHandler();
+    
+    // fetching all user tasks
+    $result = $db->getAllMaterial($user_id);
+    $response["error"] = false;
+    $response["tasks"] = array();
+
+    // looping through result and preparing tasks array
+    while ($task = $result->fetch_assoc()) {
+        $tmp = array();
+        $tmp["kode_material"] = $task["kode_material"];
+        $tmp["nama_material"] = $task["nama_material"];
+        $tmp["unit"] = $task["unit"];
+
+        array_push($response["tasks"], $tmp);
+    }
+    echoRespnse(200, $response);
+});
+
+
+$app->post('/createPegawai', 'authenticate', function() use ($app) {
+    // check for required params
+    verifyRequiredParams(array('id_pegawai', 'nama_pegawai', 'panggilan_pegawai', 'jabatan', 'status', 'username'));
+    $response = array();
+    global $user_id;
+    // reading post params
+    $id_pegawai = $app->request->post('id_pegawai');
+    $nama_pegawai = $app->request->post('nama_pegawai');
+    $panggilan_pegawai = $app->request->post('nama_pegawai');
+    $jabatan = $app->request->post('jabatan');
+    $status = $app->request->post('status');
+    $username = $app->request->post('username');
+
+    $db = new DbHandler();
+    $res = $db->createPegawai($id_pegawai, $nama_pegawai, $panggilan_pegawai, $jabatan, $status, $username);
+
+    if ($res == ALAT_USER_CREATED_SUCCESSFULLY) {
+        $response["error"] = false;
+        $response["message"] = "Tools are successfully registered";
+    } else if ($res == ALAT_USER_CREATE_FAILED) {
+        $response["error"] = true;
+        $response["message"] = "Oops! An error occurred while registereing";
+    } else if ($res == ALAT_USER_ISNOT_EXISTED) {
+        $response["error"] = true;
+        $response["message"] = "Sorry, this tools already existed";
+    }
+    // echo json response
+    echoRespnse(201, $response);
 });
 
 $app->post('/registeralat', 'authenticate', function() use ($app) {
@@ -313,7 +366,6 @@ $app->post('/registeralat', 'authenticate', function() use ($app) {
     // echo json response
     echoRespnse(201, $response);
 });
-
 $app->post('/registeralatuser', 'authenticate', function() use ($app) {
     // check for required params
     verifyRequiredParams(array('id_alat', 'nama'));
