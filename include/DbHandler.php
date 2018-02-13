@@ -348,7 +348,7 @@ class DbHandler {
     }
 	
 	public function getAllPegawai($user_id) {
-        $stmt = $this->conn->prepare("SELECT t.* FROM aktivitas t");
+        $stmt = $this->conn->prepare("SELECT t.* FROM pegawai t");
         $stmt->execute();
         $tasks = $stmt->get_result();
         $stmt->close();
