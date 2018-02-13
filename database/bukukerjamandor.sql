@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 11, 2018 at 11:00 AM
+-- Generation Time: Feb 13, 2018 at 04:19 AM
 -- Server version: 10.1.28-MariaDB
 -- PHP Version: 5.6.32
 
@@ -140,6 +140,15 @@ CREATE TABLE `material` (
   `unit` char(2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+--
+-- Dumping data for table `material`
+--
+
+INSERT INTO `material` (`kode_material`, `nama_material`, `unit`) VALUES
+('1', 'Semen', 'kg'),
+('2', 'Kayu', 'm'),
+('3', 'Sepeda', 'cm');
+
 -- --------------------------------------------------------
 
 --
@@ -154,6 +163,13 @@ CREATE TABLE `pegawai` (
   `status` enum('tetap','bebas') NOT NULL,
   `username` varchar(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `pegawai`
+--
+
+INSERT INTO `pegawai` (`id_pegawai`, `nama_pegawai`, `panggilan_pegawai`, `jabatan`, `status`, `username`) VALUES
+('1', 'haha', 'haha', 'mandor', 'tetap', 'akhiyar');
 
 -- --------------------------------------------------------
 
@@ -191,6 +207,7 @@ CREATE TABLE `user` (
 
 INSERT INTO `user` (`id`, `username`, `email`, `password`, `api_key`, `created_at`) VALUES
 (1, 'akhiyar', 'akiyar18@gmail.com', '$2a$10$2c7181d77100c2f2825f6uAA1QcYBmU/ZIT2VglFxbAnQJxdugNvC', '5d55ed73dda2730ec3e01a5f8c631966', '2018-02-11 08:42:44'),
+(0, 'dedra', 'dedra@gmail.com', '$2a$10$43654877ef9d4c8c60a30uR35vF4ssRjvAzT/ZMVbAn1nfi5OgxIa', '0a47b5f292c2401f066883a5f8debbb8', '2018-02-13 03:07:11'),
 (0, 'waladi', 'akhiyar.waladi@ui.ac.id', '$2a$10$fba9e426fc93709ed0804u73JUga9xMNURxBuv/.iswW/ou.49D3q', '9368215ff2fe5d197d261583606f5b50', '2018-02-11 08:52:24');
 
 --
