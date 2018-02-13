@@ -140,6 +140,7 @@ $app->put('/alatuser', 'authenticate', function() use ($app) {
     echoRespnse(200, $response);
 });
 
+
 $app->put('/settingsalat', 'authenticate', function() use ($app) {
     verifyRequiredParams(array('hpsp', 'optime', 'idalat'));
  
@@ -296,6 +297,28 @@ $app->get('/getalatuser', 'authenticate', function() use ($app){
     echoRespnse(200, $response);
 });
 
+$app->get('/getAktivitas', 'authenticate', function() use ($app){
+    global $user_id;
+    $response = array();
+    $db = new DbHandler();
+    
+    // fetching all user tasks
+    $result = $db->getAllAktivitas($user_id);
+    $response["error"] = false;
+    $response["tasks"] = array();
+
+    // looping through result and preparing tasks array
+    while ($task = $result->fetch_assoc()) {
+        $tmp = array();
+        $tmp["kode_aktivitas"] = $task["kode_material"];
+        $tmp["nama_aktivitas"] = $task["nama_material"];
+        $tmp["kode_material"] = $task["kode_material"];
+
+        array_push($response["tasks"], $tmp);
+    }
+    echoRespnse(200, $response);
+});
+
 $app->get('/getMaterial', 'authenticate', function() use ($app){
     global $user_id;
     $response = array();
@@ -313,6 +336,30 @@ $app->get('/getMaterial', 'authenticate', function() use ($app){
         $tmp["nama_material"] = $task["nama_material"];
         $tmp["unit"] = $task["unit"];
 
+        array_push($response["tasks"], $tmp);
+    }
+    echoRespnse(200, $response);
+});
+
+$app->get('/getPegawai', 'authenticate', function() use ($app){
+    global $user_id;
+    $response = array();
+    $db = new DbHandler();
+    
+    // fetching all user tasks
+    $result = $db->getAllPegawai($user_id);
+    $response["error"] = false;
+    $response["tasks"] = array();
+
+    // looping through result and preparing tasks array
+    while ($task = $result->fetch_assoc()) {
+        $tmp = array();
+        $tmp["id_pegawai"] = $task["id_pegawai"];
+        $tmp["nama_pegawai"] = $task["nama_pegawai"];
+        $tmp["panggilan_pegawai"] = $task["panggilan_pegawai"];
+		$tmp["jabatan"] = $task["jabatan"];
+		$tmp["status"] = $task["status"];
+		$tmp["username"] = $task["username"];
         array_push($response["tasks"], $tmp);
     }
     echoRespnse(200, $response);

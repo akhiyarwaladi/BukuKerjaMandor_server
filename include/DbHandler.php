@@ -346,7 +346,16 @@ class DbHandler {
         $stmt->close();
         return $tasks;
     }
-
+	
+	
+	public function getAllAktivitas($user_id) {
+        $stmt = $this->conn->prepare("SELECT t.* FROM aktivitas t");
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
+    }
+	
     public function getAllMaterial($user_id) {
         $stmt = $this->conn->prepare("SELECT t.* FROM material t");
         $stmt->execute();
