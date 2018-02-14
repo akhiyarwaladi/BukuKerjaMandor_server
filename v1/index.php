@@ -310,8 +310,8 @@ $app->get('/getAktivitas', 'authenticate', function() use ($app){
     // looping through result and preparing tasks array
     while ($task = $result->fetch_assoc()) {
         $tmp = array();
-        $tmp["kode_aktivitas"] = $task["kode_material"];
-        $tmp["nama_aktivitas"] = $task["nama_material"];
+        $tmp["kode_aktivitas"] = $task["kode_aktivitas"];
+        $tmp["nama_aktivitas"] = $task["nama_aktivitas"];
         $tmp["kode_material"] = $task["kode_material"];
 
         array_push($response["tasks"], $tmp);
@@ -365,6 +365,59 @@ $app->get('/getPegawai', 'authenticate', function() use ($app){
     echoRespnse(200, $response);
 });
 
+$app->post('/createAktivitas', 'authenticate', function() use ($app) {
+    // check for required params
+    verifyRequiredParams(array('kode_aktivitas', 'nama_aktivitas', 'kode_material'));
+    $response = array();
+    global $user_id;
+    // reading post params
+    $kode_aktivitas = $app->request->post('kode_aktivitas');
+    $nama_aktivitas = $app->request->post('nama_aktivitas');
+    $kode_material = $app->request->post('kode_material');
+
+    $db = new DbHandler();
+    $res = $db->createAktivitas($kode_aktivitas, $nama_aktivitas, $kode_material);
+
+    if ($res == ALAT_USER_CREATED_SUCCESSFULLY) {
+        $response["error"] = false;
+        $response["message"] = "Tools are successfully registered";
+    } else if ($res == ALAT_USER_CREATE_FAILED) {
+        $response["error"] = true;
+        $response["message"] = "Oops! An error occurred while registereing";
+    } else if ($res == ALAT_USER_ISNOT_EXISTED) {
+        $response["error"] = true;
+        $response["message"] = "Sorry, this tools already existed";
+    }
+    // echo json response
+    echoRespnse(201, $response);
+});
+
+$app->post('/createMaterial', 'authenticate', function() use ($app) {
+    // check for required params
+    verifyRequiredParams(array('kode_material', 'nama_material', 'unit'));
+    $response = array();
+    global $user_id;
+    // reading post params
+    $kode_material = $app->request->post('kode_material');
+    $nama_material = $app->request->post('nama_material');
+    $unit = $app->request->post('unit');
+
+    $db = new DbHandler();
+    $res = $db->createMaterial($kode_material, $nama_material, $unit);
+
+    if ($res == ALAT_USER_CREATED_SUCCESSFULLY) {
+        $response["error"] = false;
+        $response["message"] = "Tools are successfully registered";
+    } else if ($res == ALAT_USER_CREATE_FAILED) {
+        $response["error"] = true;
+        $response["message"] = "Oops! An error occurred while registereing";
+    } else if ($res == ALAT_USER_ISNOT_EXISTED) {
+        $response["error"] = true;
+        $response["message"] = "Sorry, this tools already existed";
+    }
+    // echo json response
+    echoRespnse(201, $response);
+});
 
 $app->post('/createPegawai', 'authenticate', function() use ($app) {
     // check for required params

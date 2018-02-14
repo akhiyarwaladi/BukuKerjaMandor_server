@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.7.4
+-- version 4.7.0
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 13, 2018 at 04:19 AM
--- Server version: 10.1.28-MariaDB
--- PHP Version: 5.6.32
+-- Generation Time: Feb 14, 2018 at 07:50 AM
+-- Server version: 10.1.25-MariaDB
+-- PHP Version: 5.6.31
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -31,21 +31,23 @@ SET time_zone = "+00:00";
 CREATE TABLE `aktivitas` (
   `kode_aktivitas` char(10) NOT NULL,
   `nama_aktivitas` varchar(50) NOT NULL,
-  `kode_alat` char(10) NOT NULL,
   `kode_material` char(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- --------------------------------------------------------
-
 --
--- Table structure for table `alat`
+-- Dumping data for table `aktivitas`
 --
 
-CREATE TABLE `alat` (
-  `kode_alat` char(10) NOT NULL,
-  `nama_material` varchar(50) NOT NULL,
-  `unit` char(2) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+INSERT INTO `aktivitas` (`kode_aktivitas`, `nama_aktivitas`, `kode_material`) VALUES
+('BAAA01', 'Semprot Lalang', '22000464'),
+('BAAB01', 'Wiping Lalang', '1000002'),
+('BACA01', 'Semprot Piringan', '22000464'),
+('BACC01', 'Semprot Pasar Rintis', '1000021'),
+('BAEA01', 'Semprot Gawangan', '1000002'),
+('BCAC05', 'Tabur Pupuk NPK 13', '2600002'),
+('BCAG05', 'Tabur Pupuk Borate', '2600012'),
+('BCAL05', 'Tabur Pupuk CuSO4', '2600040'),
+('BCBB01', 'Tabur Humic Acid Ostindo', '2600017');
 
 -- --------------------------------------------------------
 
@@ -58,20 +60,6 @@ CREATE TABLE `bkm_aktivitas` (
   `no_aktivitas` int(2) NOT NULL,
   `kode_aktivitas` char(10) NOT NULL,
   `foto_aktivitas` varbinary(2000) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `bkm_alat`
---
-
-CREATE TABLE `bkm_alat` (
-  `no_bkm` char(10) NOT NULL,
-  `no_alat` int(2) NOT NULL,
-  `no_aktivitas` int(2) NOT NULL,
-  `kode_alat` char(10) NOT NULL,
-  `kuantitas` int(2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -145,9 +133,13 @@ CREATE TABLE `material` (
 --
 
 INSERT INTO `material` (`kode_material`, `nama_material`, `unit`) VALUES
-('1', 'Semen', 'kg'),
-('2', 'Kayu', 'm'),
-('3', 'Sepeda', 'cm');
+('1000002', 'Glifosat 480 g/l - Prima Up', 'L'),
+('1000021', 'Metil Metsulfuron 20% - Ally', 'kg'),
+('22000464', 'Knapsack Sprayer INTER', 'pc'),
+('2600002', 'Pupuk NPK Hikay (13/6/27/4 + 0.65 B)', 'kg'),
+('2600012', 'Borate ex USA', 'kg'),
+('2600017', 'Pupuk Humic Acid OSTINDO kemasan 40 kg', 'kg'),
+('2600040', 'Copper Sulfate CuSO4', 'kg');
 
 -- --------------------------------------------------------
 
@@ -169,7 +161,8 @@ CREATE TABLE `pegawai` (
 --
 
 INSERT INTO `pegawai` (`id_pegawai`, `nama_pegawai`, `panggilan_pegawai`, `jabatan`, `status`, `username`) VALUES
-('1', 'haha', 'haha', 'mandor', 'tetap', 'akhiyar');
+('1', 'haha', 'haha', 'mandor', 'tetap', 'akhiyar'),
+('10034', 'budi', 'budi', 'mandor', 'tetap', 'dedra');
 
 -- --------------------------------------------------------
 
@@ -220,15 +213,7 @@ INSERT INTO `user` (`id`, `username`, `email`, `password`, `api_key`, `created_a
 ALTER TABLE `aktivitas`
   ADD PRIMARY KEY (`kode_aktivitas`),
   ADD UNIQUE KEY `kode_aktivitas` (`kode_aktivitas`),
-  ADD KEY `kode_material` (`kode_material`),
-  ADD KEY `kode_alat` (`kode_alat`) USING BTREE;
-
---
--- Indexes for table `alat`
---
-ALTER TABLE `alat`
-  ADD PRIMARY KEY (`kode_alat`),
-  ADD UNIQUE KEY `kode_alat` (`kode_alat`);
+  ADD KEY `kode_material` (`kode_material`);
 
 --
 -- Indexes for table `bkm_aktivitas`
@@ -236,15 +221,6 @@ ALTER TABLE `alat`
 ALTER TABLE `bkm_aktivitas`
   ADD PRIMARY KEY (`no_aktivitas`),
   ADD KEY `kode_aktivitas` (`kode_aktivitas`),
-  ADD KEY `no_bkm` (`no_bkm`);
-
---
--- Indexes for table `bkm_alat`
---
-ALTER TABLE `bkm_alat`
-  ADD PRIMARY KEY (`no_alat`),
-  ADD KEY `no_aktivitas` (`no_aktivitas`),
-  ADD KEY `kode_alat` (`kode_alat`),
   ADD KEY `no_bkm` (`no_bkm`);
 
 --
@@ -320,7 +296,6 @@ ALTER TABLE `user`
 -- Constraints for table `aktivitas`
 --
 ALTER TABLE `aktivitas`
-  ADD CONSTRAINT `aktivitas_ibfk_1` FOREIGN KEY (`kode_alat`) REFERENCES `alat` (`kode_alat`) ON UPDATE CASCADE,
   ADD CONSTRAINT `aktivitas_ibfk_2` FOREIGN KEY (`kode_material`) REFERENCES `material` (`kode_material`) ON UPDATE CASCADE;
 
 --
@@ -329,14 +304,6 @@ ALTER TABLE `aktivitas`
 ALTER TABLE `bkm_aktivitas`
   ADD CONSTRAINT `bkm_aktivitas_ibfk_1` FOREIGN KEY (`kode_aktivitas`) REFERENCES `aktivitas` (`kode_aktivitas`) ON UPDATE CASCADE,
   ADD CONSTRAINT `bkm_aktivitas_ibfk_2` FOREIGN KEY (`no_bkm`) REFERENCES `bkm_harian` (`no_bkm`) ON UPDATE CASCADE;
-
---
--- Constraints for table `bkm_alat`
---
-ALTER TABLE `bkm_alat`
-  ADD CONSTRAINT `bkm_alat_ibfk_1` FOREIGN KEY (`no_aktivitas`) REFERENCES `bkm_aktivitas` (`no_aktivitas`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `bkm_alat_ibfk_2` FOREIGN KEY (`kode_alat`) REFERENCES `alat` (`kode_alat`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `bkm_alat_ibfk_3` FOREIGN KEY (`no_bkm`) REFERENCES `bkm_harian` (`no_bkm`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `bkm_harian`

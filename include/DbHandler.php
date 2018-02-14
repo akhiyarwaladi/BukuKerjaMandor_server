@@ -391,6 +391,46 @@ class DbHandler {
         return $response;
     }
 
+	public function createAktivitas($kode_aktivitas, $nama_aktivitas, $kode_material) {
+        $response = array();
+
+        $stmt = $this->conn->prepare("INSERT INTO aktivitas(kode_aktivitas, nama_aktivitas, kode_material) values(?, ?, ?)");
+        $stmt->bind_param("sss", $kode_aktivitas, $nama_aktivitas, $kode_material);
+        $result = $stmt->execute();
+        $stmt->close();
+
+        // Check for successful insertion
+        if ($result) {
+            // User successfully inserted
+            return ALAT_USER_CREATED_SUCCESSFULLY;
+        } else {
+            // Failed to create user
+            return ALAT_USER_CREATE_FAILED;
+        }
+   
+        return $response;
+    }
+	
+	public function createMaterial($kode_material, $nama_material, $unit) {
+        $response = array();
+
+        $stmt = $this->conn->prepare("INSERT INTO material(kode_material, nama_material, unit) values(?, ?, ?)");
+        $stmt->bind_param("sss", $kode_material, $nama_material, $unit);
+        $result = $stmt->execute();
+        $stmt->close();
+
+        // Check for successful insertion
+        if ($result) {
+            // User successfully inserted
+            return ALAT_USER_CREATED_SUCCESSFULLY;
+        } else {
+            // Failed to create user
+            return ALAT_USER_CREATE_FAILED;
+        }
+   
+        return $response;
+    }
+	
     public function getAlatUserById($id_alat) {
         $stmt = $this->conn->prepare("SELECT t.* FROM alatuser t WHERE t.id = ?");
         $stmt->bind_param("s", $id_alat);
