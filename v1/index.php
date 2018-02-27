@@ -52,19 +52,16 @@ function authenticate(\Slim\Route $route) {
 
 $app->post('/register', function() use ($app) {
     // check for required params
-    verifyRequiredParams(array('name', 'email', 'password'));
+    verifyRequiredParams(array('id_pegawai', 'username', 'password'));
     $response = array();
 
     // reading post params
-    $name = $app->request->post('name');
-    $email = $app->request->post('email');
+	$id_pegawai = $app->request->post('id_pegawai');
+    $username = $app->request->post('username');
     $password = $app->request->post('password');
 
-    // validating email address
-    validateEmail($email);
-
     $db = new DbHandler();
-    $res = $db->createUser($name, $email, $password);
+    $res = $db->createUser($id_pegawai, $username, $password);
 
     if ($res == USER_CREATED_SUCCESSFULLY) {
         $response["error"] = false;
@@ -82,23 +79,22 @@ $app->post('/register', function() use ($app) {
 
 $app->post('/login', function() use ($app) {
     // check for required params
-    verifyRequiredParams(array('email', 'password'));
+    verifyRequiredParams(array('username', 'password'));
 
     // reading post params
-    $email = $app->request()->post('email');
+    $username = $app->request()->post('username');
     $password = $app->request()->post('password');
     $response = array();
 
     $db = new DbHandler();
-    // check for correct email and password
-    if ($db->checkLogin($email, $password)) {
-        // get the user by email
-        $user = $db->getUserByEmail($email);
+    // check for correct username and password
+    if ($db->checkLogin($username, $password)) {
+        // get the user by username
+        $user = $db->getUserByEmail($username);
 
         if ($user != NULL) {
             $response["error"] = false;
             $response['username'] = $user['username'];
-            $response['email'] = $user['email'];
             $response['apiKey'] = $user['api_key'];
             $response['createdAt'] = $user['created_at'];
         } else {
@@ -140,163 +136,6 @@ $app->put('/alatuser', 'authenticate', function() use ($app) {
     echoRespnse(200, $response);
 });
 
-
-$app->put('/settingsalat', 'authenticate', function() use ($app) {
-    verifyRequiredParams(array('hpsp', 'optime', 'idalat'));
- 
-    $hpsp = $app->request->put('hpsp');
-    $optime = $app->request->put('optime');
-    $idalat = $app->request->put('idalat');
-    $db = new DbHandler();
-    $response = $db->updateSettingsAlat($hpsp, $optime, $idalat);
- 
-    echoRespnse(200, $response);
-});
-
-$app->post('/data_sensor', 'authenticate', function() use ($app) {
-    // check for required params
-    verifyRequiredParams(array('hpsp', 'hpc', 'humid', 'temp', 'uk', 'optime','idalat'));
-
-    $response = array();
-    $hpsp = $app->request->post('hpsp');
-    $hpc = $app->request->post('hpc');
-    $humid = $app->request->post('humid');
-    $temp = $app->request->post('temp');
-    $uk = $app->request->post('uk');
-    $optime = $app->request->post('optime');
-    $idalat = $app->request->post('idalat');
-
-    global $user_id;
-    $db = new DbHandler();
-    $task_id = $db->createDataSensor($user_id, $idalat, $hpsp, $hpc, $humid, $temp, $uk, $optime);
-    if ($task_id != NULL) {
-        
-        $response["error"] = false;
-        $response["message"] = "Succesfully add data sensor";
-        $response['hpsp'] = $task_id['hpsp'];
-        $response['hpc'] = $task_id['hpc'];
-        $response['humid'] = $task_id['humid'];
-        $response['temp'] = $task_id['temp'];
-        $response['uk'] = $task_id['uk'];
-        $response['optime'] = $task_id['optime'];
-       
-        echoRespnse(201, $response);
-    } else {
-        $response["error"] = true;
-        $response["message"] = "Failed to create task. Please try again";
-        echoRespnse(200, $response);
-    }
-});
-
-$app->get('/databyidalat/:id', 'authenticate', function($id_alat) use ($app){
-    global $user_id;
-    $response = array();
-    $db = new DbHandler();
-    
-    // fetching all user tasks
-    $result = $db->getAllDataByIdAlat($id_alat);
-    $response["error"] = false;
-    $response["tasks"] = array();
-
-    // looping through result and preparing tasks array
-    while ($task = $result->fetch_assoc()) {
-        $tmp = array();
-        $tmp["id"] = $task["id"];
-        $tmp["hpsp"] = $task["hpsp"];
-        $tmp["hpc"] = $task["hpc"];
-        $tmp["humid"] = $task["humidity"];
-        $tmp["temp"] = $task["temperature"];
-        $tmp["uk"] = $task["uk"];
-        $tmp["optime"] = $task["optime"];
-        $tmp["createdAt"] = strtotime($task["created_at"]);
-        array_push($response["tasks"], $tmp);
-    }
-    echoRespnse(200, $response);
-});
-
-$app->get('/lastdatabyidalat/:id', 'authenticate', function($id_alat) use ($app){
-    global $user_id;
-    $response = array();
-    $db = new DbHandler();
-    
-    // fetching all user tasks
-    $result = $db->getLastDataByIdAlat($id_alat);
-    $response["error"] = false;
-    $response["tasks"] = array();
-
-    // looping through result and preparing tasks array
-    while ($task = $result->fetch_assoc()) {
-        $tmp = array();
-        $tmp["id"] = $task["id"];
-        $tmp["suhu"] = $task["suhu"];
-        $tmp["ph"] = $task["ph"];
-        $tmp["do"] = $task["do"];
-        $tmp["hasil"] = $task["hasil"];
-        $tmp["status"] = $task["status"];
-        $tmp["createdAt"] = $task["create_at"];
-        array_push($response["tasks"], $tmp);
-    }
-
-    echoRespnse(200, $response);
-});
-$app->get('/getalatuser/:id', 'authenticate', function($id_alat) use ($app){
-    global $user_id;
-    $response = array();
-    $db = new DbHandler();
-    
-    // fetching all user tasks
-    $result = $db->getAlatUserById($id_alat);
-    $response["error"] = false;
-    $response["tasks"] = array();
-
-    // looping through result and preparing tasks array
-    while ($task = $result->fetch_assoc()) {
-        $tmp = array();
-        $tmp["id"] = $task["id"];
-        $tmp["kode_alat"] = $task["kode_alat"];
-        $tmp["id_user"] = $task["id_user"];
-	    $tmp["nama"] = $task["nama"];
-        $tmp["latitude"] = $task["latitude"];
-        $tmp["longitude"] = $task["longitude"];
-        $tmp["rssi"] = $task["rssi"];
-        $tmp["battery"] = $task["battery"];
-        $tmp["status"] = $task["status"];
-        $tmp["setPoint"] = $task["setPoint"];
-        $tmp["opTime"] = $task["opTime"];
-
-        array_push($response["tasks"], $tmp);
-    }
-    echoRespnse(200, $response);
-});
-
-$app->get('/getalatuser', 'authenticate', function() use ($app){
-    global $user_id;
-    $response = array();
-    $db = new DbHandler();
-    
-    // fetching all user tasks
-    $result = $db->getAlatUser($user_id);
-    $response["error"] = false;
-    $response["tasks"] = array();
-
-    // looping through result and preparing tasks array
-    while ($task = $result->fetch_assoc()) {
-        $tmp = array();
-        $tmp["id"] = $task["id"];
-        $tmp["kode_alat"] = $task["kode_alat"];
-        $tmp["id_user"] = $task["id_user"];
-	    $tmp["nama"] = $task["nama"];
-        $tmp["latitude"] = $task["latitude"];
-        $tmp["longitude"] = $task["longitude"];
-        $tmp["rssi"] = $task["rssi"];
-        $tmp["battery"] = $task["battery"];
-        $tmp["status"] = $task["status"];
-
-        array_push($response["tasks"], $tmp);
-    }
-    echoRespnse(200, $response);
-});
-
 $app->get('/getAktivitas', 'authenticate', function() use ($app){
     global $user_id;
     $response = array();
@@ -312,7 +151,6 @@ $app->get('/getAktivitas', 'authenticate', function() use ($app){
         $tmp = array();
         $tmp["kode_aktivitas"] = $task["kode_aktivitas"];
         $tmp["nama_aktivitas"] = $task["nama_aktivitas"];
-        $tmp["kode_material"] = $task["kode_material"];
 
         array_push($response["tasks"], $tmp);
     }
@@ -341,6 +179,30 @@ $app->get('/getMaterial', 'authenticate', function() use ($app){
     echoRespnse(200, $response);
 });
 
+$app->get('/getRKHAktivitas', 'authenticate', function() use ($app){
+    global $user_id;
+    $response = array();
+    $db = new DbHandler();
+    
+    // fetching all user tasks
+    $result = $db->getRKHAktivitas($user_id);
+    $response["error"] = false;
+    $response["tasks"] = array();
+
+    // looping through result and preparing tasks array
+    while ($task = $result->fetch_assoc()) {
+        $tmp = array();
+        $tmp["no_rkh"] = $task["no_rkh"];
+        $tmp["no_aktivitas"] = $task["no_aktivitas"];
+        $tmp["kode_aktivitas"] = $task["kode_aktivitas"];
+		$tmp["sektor_tanam"] = $task["sektor_tanam"];
+		$tmp["blok_tanam"] = $task["blok_tanam"];
+
+        array_push($response["tasks"], $tmp);
+    }
+    echoRespnse(200, $response);
+});
+
 $app->get('/getPegawai', 'authenticate', function() use ($app){
     global $user_id;
     $response = array();
@@ -359,7 +221,7 @@ $app->get('/getPegawai', 'authenticate', function() use ($app){
         $tmp["panggilan_pegawai"] = $task["panggilan_pegawai"];
 		$tmp["jabatan"] = $task["jabatan"];
 		$tmp["status"] = $task["status"];
-		$tmp["username"] = $task["username"];
+		$tmp["kode_mandoran"] = $task["kode_mandoran"];
         array_push($response["tasks"], $tmp);
     }
     echoRespnse(200, $response);
@@ -427,7 +289,7 @@ $app->post('/createPegawai', 'authenticate', function() use ($app) {
     // reading post params
     $id_pegawai = $app->request->post('id_pegawai');
     $nama_pegawai = $app->request->post('nama_pegawai');
-    $panggilan_pegawai = $app->request->post('nama_pegawai');
+    $panggilan_pegawai = $app->request->post('panggilan_pegawai');
     $jabatan = $app->request->post('jabatan');
     $status = $app->request->post('status');
     $username = $app->request->post('username');
@@ -445,91 +307,6 @@ $app->post('/createPegawai', 'authenticate', function() use ($app) {
         $response["error"] = true;
         $response["message"] = "Sorry, this tools already existed";
     }
-    // echo json response
-    echoRespnse(201, $response);
-});
-
-$app->post('/registeralat', 'authenticate', function() use ($app) {
-    global $user_id;
-    $response = array();
-    
-    $db = new DbHandler();
-    $res = $db->createDataAlat($user_id);
-
-    if ($res == ID_ALAT_CREATED_SUCCESSFULLY) {
-        $response["error"] = false;
-        $response["message"] = "Tools successfully registered";
-    } else if ($res == ID_ALAT_USER_CREATE_FAILED) {
-        $response["error"] = true;
-        $response["message"] = "Oops! An error occurred while registering tools";
-    } 
-    // echo json response
-    echoRespnse(201, $response);
-});
-$app->post('/registeralatuser', 'authenticate', function() use ($app) {
-    // check for required params
-    verifyRequiredParams(array('id_alat', 'nama'));
-    $response = array();
-    global $user_id;
-    // reading post params
-    $id_alat = $app->request->post('id_alat');
-    $nama = $app->request->post('nama');
-
-    $db = new DbHandler();
-    $res = $db->createAlatUser($id_alat, $user_id, $nama);
-
-    if ($res == ALAT_USER_CREATED_SUCCESSFULLY) {
-        $response["error"] = false;
-        $response["message"] = "Tools are successfully registered";
-    } else if ($res == ALAT_USER_CREATE_FAILED) {
-        $response["error"] = true;
-        $response["message"] = "Oops! An error occurred while registereing";
-	} else if ($res == ALAT_USER_ISNOT_EXISTED) {
-        $response["error"] = true;
-        $response["message"] = "Sorry, this tools already existed";
-    }
-    // echo json response
-    echoRespnse(201, $response);
-});
-
-$app->delete('/deletealatuser/:id', 'authenticate', function($id_alat) use ($app) {
-    // check for required params
-    global $user_id;  
-    $db = new DbHandler();
-    $response = array();
-    $result = $db->deleteAlatUser($id_alat, $user_id);
-
-    if ($result) {
-        // task deleted successfully
-        $response["error"] = false;
-        $response["message"] = "Alat deleted succesfully";
-    } else {
-        // task failed to delete
-        $response["error"] = true;
-        $response["message"] = "Alat failed to delete. Please try again!";
-    }
-    echoRespnse(200, $response);
-});
-
-$app->post('/sendtotopic', function() use ($app){
-    
-    verifyRequiredParams(array('title', 'message'));
-    $response = array();
-    global $user_id;
-    // reading post params
-    $title = $app->request->post('title');
-    $message = $app->request->post('message');
-
-    $db = new DbHandler();
-    $res = $db->sendToTopic($title, $message);
-
-    if ($res == MESSAGE_SENT_SUCCESSFULLY) {
-        $response["error"] = false;
-        $response["message"] = "message are successfully sent";
-    } else if ($res == MESSAGE_SENT_FAILED) {
-        $response["error"] = true;
-        $response["message"] = "Oops! An error occurred while sending message";
-    } 
     // echo json response
     echoRespnse(201, $response);
 });

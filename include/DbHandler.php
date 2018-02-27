@@ -16,11 +16,11 @@ class DbHandler {
 
     /* ------------- `users` table method ------------------ */
 
-    public function createUser($name, $email, $password) {
+    public function createUser($id_pegawai, $username, $password) {
         $response = array();
 
         // First check if user already existed in db
-        if (!$this->isUserExists($email)) {
+        if (!$this->isUserExists($username)) {
             // Generating password hash
             $password_hash = PassHash::hash($password);
 
@@ -28,8 +28,8 @@ class DbHandler {
             $api_key = $this->generateApiKey();
 
             // insert query
-            $stmt = $this->conn->prepare("INSERT INTO user(username, email, password, api_key) values(?, ?, ?, ?)");
-            $stmt->bind_param("ssss", $name, $email, $password_hash, $api_key);
+            $stmt = $this->conn->prepare("INSERT INTO user(id_pegawai, username, password, api_key) values(?, ?, ?, ?)");
+            $stmt->bind_param("ssss", $id_pegawai, $username, $password_hash, $api_key);
 
             $result = $stmt->execute();
             $stmt->close();
@@ -70,54 +70,17 @@ class DbHandler {
         return $response;
     }
 
-    public function updateAlatUser($rssi, $battery, $idalat, $status) {
-        $response = array();
-        $stmt = $this->conn->prepare("UPDATE alatuser SET rssi = ?, battery = ?, status = ? WHERE id = ?");
-        $stmt->bind_param("iiii", $rssi, $battery,  $status, $idalat);
-
-        if ($stmt->execute()) {
-            // User successfully updated
-            $response["error"] = false;
-            $response["message"] = 'AlatUser updated successfully';
-        } else {
-            // Failed to update user
-            $response["error"] = true;
-            $response["message"] = "Failed to update AlatUser";
-            $stmt->error;
-        }
-        $stmt->close();
-        return $response;
-    }
-    
-    public function updateSettingsAlat($hpsp, $optime, $idalat) {
-        $response = array();
-        $stmt = $this->conn->prepare("UPDATE alatuser SET setPoint = ?, opTime = ? WHERE id = ?");
-        $stmt->bind_param("iii", $hpsp, $optime, $idalat);
-
-        if ($stmt->execute()) {
-            // User successfully updated
-            $response["error"] = false;
-            $response["message"] = 'SettingsAlat updated successfully';
-        } else {
-            // Failed to update user
-            $response["error"] = true;
-            $response["message"] = "Failed to update SettingsAlat";
-            $stmt->error;
-        }
-        $stmt->close();
-        return $response;
-    }
     /**
      * Checking user login
-     * @param String $email User login email id
+     * @param String $username User login username id
      * @param String $password User login password
      * @return boolean User login status success/fail
      */
-    public function checkLogin($email, $password) {
+    public function checkLogin($username, $password) {
         // fetching user by email
-        $stmt = $this->conn->prepare("SELECT password FROM user WHERE email = ?");
+        $stmt = $this->conn->prepare("SELECT password FROM user WHERE username = ?");
 
-        $stmt->bind_param("s", $email);
+        $stmt->bind_param("s", $username);
 
         $stmt->execute();
 
@@ -126,7 +89,7 @@ class DbHandler {
         $stmt->store_result();
 
         if ($stmt->num_rows > 0) {
-            // Found user with the email
+            // Found user with the user
             // Now verify the password
 
             $stmt->fetch();
@@ -154,9 +117,9 @@ class DbHandler {
      * @return boolean
      */
 	 
-    private function isUserExists($email) {
-        $stmt = $this->conn->prepare("SELECT id from user WHERE email = ?");
-        $stmt->bind_param("s", $email);
+    private function isUserExists($id_pegawai) {
+        $stmt = $this->conn->prepare("SELECT id_pegawai from user WHERE id_pegawai = ?");
+        $stmt->bind_param("s", $id_pegawai);
         $stmt->execute();
         $stmt->store_result();
         $num_rows = $stmt->num_rows;
@@ -164,65 +127,19 @@ class DbHandler {
         return $num_rows > 0;
     }
 	
-    public function createAlatUser($id_alat, $user_id, $nama) {
-        $response = array();
-        if (!$this->isAlatExists($id_alat)) {
-            return ALAT_USER_ISNOT_EXISTED;
-        }
-        else{
-            $stmt = $this->conn->prepare("INSERT INTO alatuser(id_alat, id_user, nama) values(?, ?, ?)");
-            $stmt->bind_param("sss", $id_alat, $user_id, $nama);
-            $result = $stmt->execute();
-            $stmt->close();
-
-            // Check for successful insertion
-            if ($result) {
-                // User successfully inserted
-                return ALAT_USER_CREATED_SUCCESSFULLY;
-            } else {
-                // Failed to create user
-                return ALAT_USER_CREATE_FAILED;
-            }
-        }
-        return $response;
-    }
-	
-    private function isAlatExists($id_alat) {
-        $stmt = $this->conn->prepare("SELECT id from dataalat WHERE kode = ?");
-        $stmt->bind_param("s", $id_alat);
-        $stmt->execute();
-        $stmt->store_result();
-        $num_rows = $stmt->num_rows;
-        $stmt->close();
-        return $num_rows > 0;
-    }
-	
-    public function deleteAlatUser($id_alat, $user_id) {
-        $response = array();
-
-        // delete query
-        $stmt = $this->conn->prepare("DELETE from alatuser WHERE id = ?");
-        $stmt->bind_param("s", $id_alat);
-        $stmt->execute();
-        $num_affected_rows = $stmt->affected_rows;
-        $stmt->close();
-        return $num_affected_rows > 0;
-    }
-
     /**
      * Fetching user by email
      * @param String $email User email id
      */
-    public function getUserByEmail($email) {
-        $stmt = $this->conn->prepare("SELECT username, email, api_key, created_at FROM user WHERE email = ?");
-        $stmt->bind_param("s", $email);
+    public function getUserByEmail($username) {
+        $stmt = $this->conn->prepare("SELECT username, api_key, created_at FROM user WHERE username = ?");
+        $stmt->bind_param("s", $username);
         if ($stmt->execute()) {
             // $user = $stmt->get_result()->fetch_assoc();
-            $stmt->bind_result($username, $email, $api_key, $created_at);
+            $stmt->bind_result($username, $api_key, $created_at);
             $stmt->fetch();
             $user = array();
             $user["username"] = $username;
-            $user["email"] = $email;
             $user["api_key"] = $api_key;
             $user["created_at"] = $created_at;
             $stmt->close();
@@ -255,7 +172,7 @@ class DbHandler {
      * @param String $api_key user api key
      */
     public function getUserId($api_key) {
-        $stmt = $this->conn->prepare("SELECT id FROM user WHERE api_key = ?");
+        $stmt = $this->conn->prepare("SELECT id_pegawai FROM user WHERE api_key = ?");
         $stmt->bind_param("s", $api_key);
         if ($stmt->execute()) {
             $stmt->bind_result($user_id);
@@ -276,7 +193,7 @@ class DbHandler {
      * @return boolean
      */
     public function isValidApiKey($api_key) {
-        $stmt = $this->conn->prepare("SELECT id from user WHERE api_key = ?");
+        $stmt = $this->conn->prepare("SELECT id_pegawai from user WHERE api_key = ?");
         $stmt->bind_param("s", $api_key);
         $stmt->execute();
         $stmt->store_result();
@@ -292,60 +209,7 @@ class DbHandler {
         return md5(uniqid(rand(), true));
     }
 
-    /* ------------- `alat` table method ------------------ */
-
-    public function createDataSensor($user_id, $alat_id, $hpsp, $hpc, $humid, $temp, $uk, $optime) {
-        $api_key = $this->generateApiKey();
-        $stmt = $this->conn->prepare("INSERT INTO datasensor(id_alat, hpsp, hpc, humidity, temperature, uk, optime) VALUES(?,?,?,?,?,?,?)");
-        $stmt->bind_param("sssssss", $alat_id, $hpsp, $hpc, $humid, $temp, $uk, $optime);
-        $result = $stmt->execute();
-        if ($result) {
-            // task row created
-            // now assign the task to user
-            $new_task_id = $this->conn->insert_id;
-            $stmt->fetch();
-            $data = array();
-            $data["hpsp"] = $hpsp;
-            $data["hpc"] = $hpc;
-            $data["humid"] = $humid;
-            $data["temp"] = $temp;
-            $data["uk"] = $uk;
-            $data["optime"] = $optime;
-            $stmt->close();
-            return $data;
-
-        } else {
-            // task failed to create
-            return NULL;
-        }
-    }
-
-    public function getAllDataByIdAlat($id_alat) {
-        $stmt = $this->conn->prepare("SELECT t.* FROM datasensor t WHERE t.id_alat = ? ORDER BY t.created_at DESC LIMIT 30");
-        $stmt->bind_param("s", $id_alat);
-        $stmt->execute();
-        $tasks = $stmt->get_result();
-        $stmt->close();
-        return $tasks;
-    }
-	
-    public function getLastDataByIdAlat($id_alat) {
-        $stmt = $this->conn->prepare("SELECT t.* FROM datasensor t WHERE t.id_alat = ? ORDER BY t.create_at DESC LIMIT 1");
-        $stmt->bind_param("s", $id_alat);
-        $stmt->execute();
-        $tasks = $stmt->get_result();
-        $stmt->close();
-        return $tasks;
-    }
-	
-    public function getAlatUser($user_id) {
-        $stmt = $this->conn->prepare("SELECT t.* FROM alatuser t WHERE t.id_user = ?");
-        $stmt->bind_param("s", $user_id);
-        $stmt->execute();
-        $tasks = $stmt->get_result();
-        $stmt->close();
-        return $tasks;
-    }
+    /* ------------- `pegawai` table method ------------------ */
 	
 	public function getAllPegawai($user_id) {
         $stmt = $this->conn->prepare("SELECT t.* FROM pegawai t");
@@ -355,40 +219,34 @@ class DbHandler {
         return $tasks;
     }
 	
-	public function getAllAktivitas($user_id) {
-        $stmt = $this->conn->prepare("SELECT t.* FROM aktivitas t");
-        $stmt->execute();
-        $tasks = $stmt->get_result();
-        $stmt->close();
-        return $tasks;
-    }
-	
-    public function getAllMaterial($user_id) {
-        $stmt = $this->conn->prepare("SELECT t.* FROM material t");
-        $stmt->execute();
-        $tasks = $stmt->get_result();
-        $stmt->close();
-        return $tasks;
-    }
-
-    public function createPegawai($id_pegawai, $nama_pegawai, $panggilan_pegawai, $jabatan, $status, $username) {
+	public function createPegawai($id_pegawai, $nama_pegawai, $panggilan_pegawai, $jabatan, $status, $kode_mandoran) {
         $response = array();
 
-        $stmt = $this->conn->prepare("INSERT INTO pegawai(id_pegawai, nama_pegawai, panggilan_pegawai, jabatan, status, username) values(?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssss", $id_pegawai, $nama_pegawai, $panggilan_pegawai, $jabatan, $status, $username);
+        $stmt = $this->conn->prepare("INSERT INTO pegawai(id_pegawai, nama_pegawai, panggilan_pegawai, jabatan, status, kode_mandoran) values(?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssss", $id_pegawai, $nama_pegawai, $panggilan_pegawai, $jabatan, $status, $kode_mandoran);
         $result = $stmt->execute();
         $stmt->close();
 
         // Check for successful insertion
         if ($result) {
             // User successfully inserted
-            return ALAT_USER_CREATED_SUCCESSFULLY;
+            return PEGAWAI_CREATED_SUCCESSFULLY;
         } else {
             // Failed to create user
-            return ALAT_USER_CREATE_FAILED;
+            return PEGAWAI_CREATE_FAILED;
         }
    
         return $response;
+    }
+
+    /* ------------- `aktivitas` table method ------------------ */
+	
+	public function getAllAktivitas($user_id) {
+        $stmt = $this->conn->prepare("SELECT t.* FROM aktivitas t");
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
     }
 
 	public function createAktivitas($kode_aktivitas, $nama_aktivitas, $kode_material) {
@@ -402,13 +260,23 @@ class DbHandler {
         // Check for successful insertion
         if ($result) {
             // User successfully inserted
-            return ALAT_USER_CREATED_SUCCESSFULLY;
+            return AKTIVITAS_CREATED_SUCCESSFULLY;
         } else {
             // Failed to create user
-            return ALAT_USER_CREATE_FAILED;
+            return AKTIVITAS_CREATE_FAILED;
         }
    
         return $response;
+    }
+	
+    /* ------------- `material` table method ------------------ */
+	
+    public function getAllMaterial($user_id) {
+        $stmt = $this->conn->prepare("SELECT t.* FROM material t");
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
     }
 	
 	public function createMaterial($kode_material, $nama_material, $unit) {
@@ -422,48 +290,22 @@ class DbHandler {
         // Check for successful insertion
         if ($result) {
             // User successfully inserted
-            return ALAT_USER_CREATED_SUCCESSFULLY;
+            return MATERIAL_CREATED_SUCCESSFULLY;
         } else {
             // Failed to create user
-            return ALAT_USER_CREATE_FAILED;
+            return MATERIAL_CREATE_FAILED;
         }
    
         return $response;
     }
 	
-    public function getAlatUserById($id_alat) {
-        $stmt = $this->conn->prepare("SELECT t.* FROM alatuser t WHERE t.id = ?");
-        $stmt->bind_param("s", $id_alat);
+	/* ------------- `sektor tanam` table method ------------------ */
+	public function getRKHAktivitas($user_id) {
+        $stmt = $this->conn->prepare("SELECT t.* FROM rkh_aktivitas t");
         $stmt->execute();
         $tasks = $stmt->get_result();
         $stmt->close();
         return $tasks;
     }
-    public function createDataAlat($user_id) {
-        $response = array();
-
-        // Generating API key
-        $api_key = $this->generateApiKey();
-	    $date = date('Y-m-d G:i:s');
-        // insert query
-        $stmt = $this->conn->prepare("INSERT INTO dataalat(kode, tanggal_produksi) values(?, ?)");
-        $stmt->bind_param("ss", $api_key, $date);
-
-        $result = $stmt->execute();
-
-        $stmt->close();
-
-        // Check for successful insertion
-        if ($result) {
-            // User successfully inserted
-            return ID_ALAT_CREATED_SUCCESSFULLY;
-        } else {
-            // Failed to create user
-            return ID_ALAT_USER_CREATE_FAILED;
-        }
-
-        return $response;
-    }
-
 }
 ?>
