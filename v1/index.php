@@ -90,10 +90,11 @@ $app->post('/login', function() use ($app) {
     // check for correct username and password
     if ($db->checkLogin($username, $password)) {
         // get the user by username
-        $user = $db->getUserByEmail($username);
+        $user = $db->getUserByUsername($username);
 
         if ($user != NULL) {
             $response["error"] = false;
+			$response["id_pegawai"] = $user["id_pegawai"];
             $response['username'] = $user['username'];
             $response['apiKey'] = $user['api_key'];
             $response['createdAt'] = $user['created_at'];
@@ -123,18 +124,7 @@ $app->put('/users', 'authenticate', function() use ($app) {
     echoRespnse(200, $response);
 });
 
-$app->put('/alatuser', 'authenticate', function() use ($app) {
-    verifyRequiredParams(array('rssi', 'battery', 'idalat', 'status'));
- 
-    $rssi = $app->request->put('rssi');
-    $battery = $app->request->put('battery');
-    $idalat = $app->request->put('idalat');
-    $status = $app->request->put('status');
-    $db = new DbHandler();
-    $response = $db->updateAlatUser($rssi, $battery, $idalat, $status);
- 
-    echoRespnse(200, $response);
-});
+//GET
 
 $app->get('/getAktivitas', 'authenticate', function() use ($app){
     global $user_id;
@@ -203,6 +193,29 @@ $app->get('/getRKHAktivitas', 'authenticate', function() use ($app){
     echoRespnse(200, $response);
 });
 
+$app->get('/getRKHPegawai', 'authenticate', function() use ($app){
+    global $user_id;
+    $response = array();
+    $db = new DbHandler();
+    
+    // fetching all user tasks
+    $result = $db->getRKHPegawai($user_id);
+    $response["error"] = false;
+    $response["tasks"] = array();
+
+    // looping through result and preparing tasks array
+    while ($task = $result->fetch_assoc()) {
+        $tmp = array();
+        $tmp["no_rkh"] = $task["no_rkh"];
+        $tmp["no_aktivitas"] = $task["no_aktivitas"];
+        $tmp["id_pegawai"] = $task["id_pegawai"];
+		$tmp["hasil_kerja_standar"] = $task["hasil_kerja_standar"];
+
+        array_push($response["tasks"], $tmp);
+    }
+    echoRespnse(200, $response);
+});
+
 $app->get('/getPegawai', 'authenticate', function() use ($app){
     global $user_id;
     $response = array();
@@ -226,6 +239,166 @@ $app->get('/getPegawai', 'authenticate', function() use ($app){
     }
     echoRespnse(200, $response);
 });
+
+//GET UNTUK SQLITE
+
+$app->get('/getAktivitasSQLite', 'authenticate', function() use ($app){
+    global $user_id;
+    $response = array();
+    $db = new DbHandler();
+    
+    // fetching all user tasks
+    $result = $db->getAktivitasSQLite($user_id);
+    $response["error"] = false;
+    $response["tasks"] = array();
+
+    // looping through result and preparing tasks array
+    while ($task = $result->fetch_assoc()) {
+        $tmp = array();
+        $tmp["kode_aktivitas"] = $task["kode_aktivitas"];
+        $tmp["nama_aktivitas"] = $task["nama_aktivitas"];
+
+        array_push($response["tasks"], $tmp);
+    }
+    echoRespnse(200, $response);
+});
+
+$app->get('/getPegawaiSQLite', 'authenticate', function() use ($app){
+    global $user_id;
+    $response = array();
+    $db = new DbHandler();
+    
+    // fetching all user tasks
+    $result = $db->getPegawaiSQLite($user_id);
+    $response["error"] = false;
+    $response["tasks"] = array();
+
+    // looping through result and preparing tasks array
+    while ($task = $result->fetch_assoc()) {
+        $tmp = array();
+        $tmp["id_pegawai"] = $task["id_pegawai"];
+        $tmp["nama_pegawai"] = $task["nama_pegawai"];
+        $tmp["panggilan_pegawai"] = $task["panggilan_pegawai"];
+		$tmp["jabatan"] = $task["jabatan"];
+		$tmp["status"] = $task["status"];
+		$tmp["kode_mandoran"] = $task["kode_mandoran"];
+        array_push($response["tasks"], $tmp);
+    }
+    echoRespnse(200, $response);
+});
+
+$app->get('/getMaterialSQLite', 'authenticate', function() use ($app){
+    global $user_id;
+    $response = array();
+    $db = new DbHandler();
+    
+    // fetching all user tasks
+    $result = $db->getMaterialSQLite($user_id);
+    $response["error"] = false;
+    $response["tasks"] = array();
+
+    // looping through result and preparing tasks array
+    while ($task = $result->fetch_assoc()) {
+        $tmp = array();
+        $tmp["kode_material"] = $task["kode_material"];
+        $tmp["nama_material"] = $task["nama_material"];
+        $tmp["unit"] = $task["unit"];
+        array_push($response["tasks"], $tmp);
+    }
+    echoRespnse(200, $response);
+});
+
+$app->get('/getRKHSQLite', 'authenticate', function() use ($app){
+    global $user_id;
+    $response = array();
+    $db = new DbHandler();
+    
+    // fetching all user tasks
+    $result = $db->getRKHSQLite($user_id);
+    $response["error"] = false;
+    $response["tasks"] = array();
+
+    // looping through result and preparing tasks array
+    while ($task = $result->fetch_assoc()) {
+        $tmp = array();
+        $tmp["no_rkh"] = $task["no_rkh"];
+        $tmp["tgl_kegiatan"] = $task["tgl_kegiatan"];
+        $tmp["id_pegawai"] = $task["id_pegawai"];
+        array_push($response["tasks"], $tmp);
+    }
+    echoRespnse(200, $response);
+});
+
+$app->get('/getRKHAktivitasSQLite', 'authenticate', function() use ($app){
+    global $user_id;
+    $response = array();
+    $db = new DbHandler();
+    
+    // fetching all user tasks
+    $result = $db->getRKHAktivitasSQLite($user_id);
+    $response["error"] = false;
+    $response["tasks"] = array();
+
+    // looping through result and preparing tasks array
+    while ($task = $result->fetch_assoc()) {
+        $tmp = array();
+        $tmp["no_rkh"] = $task["no_rkh"];
+        $tmp["no_aktivitas"] = $task["no_aktivitas"];
+        $tmp["kode_aktivitas"] = $task["kode_aktivitas"];
+		$tmp["sektor_tanam"] = $task["sektor_tanam"];
+		$tmp["blok_tanam"] = $task["blok_tanam"];
+
+        array_push($response["tasks"], $tmp);
+    }
+    echoRespnse(200, $response);
+});
+
+$app->get('/getRKHMaterialSQLite', 'authenticate', function() use ($app){
+    global $user_id;
+    $response = array();
+    $db = new DbHandler();
+    
+    // fetching all user tasks
+    $result = $db->getRKHMaterialSQLite($user_id);
+    $response["error"] = false;
+    $response["tasks"] = array();
+
+    // looping through result and preparing tasks array
+    while ($task = $result->fetch_assoc()) {
+        $tmp = array();
+        $tmp["no_rkh"] = $task["no_rkh"];
+        $tmp["no_aktivitas"] = $task["no_aktivitas"];
+        $tmp["kode_material"] = $task["kode_material"];
+
+        array_push($response["tasks"], $tmp);
+    }
+    echoRespnse(200, $response);
+});
+
+$app->get('/getRKHPegawaiSQLite', 'authenticate', function() use ($app){
+    global $user_id;
+    $response = array();
+    $db = new DbHandler();
+    
+    // fetching all user tasks
+    $result = $db->getRKHPegawaiSQLite($user_id);
+    $response["error"] = false;
+    $response["tasks"] = array();
+
+    // looping through result and preparing tasks array
+    while ($task = $result->fetch_assoc()) {
+        $tmp = array();
+        $tmp["no_rkh"] = $task["no_rkh"];
+        $tmp["no_aktivitas"] = $task["no_aktivitas"];
+        $tmp["id_pegawai"] = $task["id_pegawai"];
+		$tmp["hasil_kerja_standar"] = $task["hasil_kerja_standar"];
+
+        array_push($response["tasks"], $tmp);
+    }
+    echoRespnse(200, $response);
+});
+
+//CREATE
 
 $app->post('/createAktivitas', 'authenticate', function() use ($app) {
     // check for required params

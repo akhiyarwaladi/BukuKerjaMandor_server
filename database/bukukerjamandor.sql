@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 27, 2018 at 01:05 PM
+-- Generation Time: Mar 03, 2018 at 09:25 PM
 -- Server version: 10.1.25-MariaDB
 -- PHP Version: 5.6.31
 
@@ -51,28 +51,28 @@ INSERT INTO `aktivitas` (`kode_aktivitas`, `nama_aktivitas`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `bkm`
+--
+
+CREATE TABLE `bkm` (
+  `no_bkm` char(10) NOT NULL,
+  `tgl_bkm` date NOT NULL,
+  `no_rkh` char(10) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `bkm_aktivitas`
 --
 
 CREATE TABLE `bkm_aktivitas` (
   `no_bkm` char(10) NOT NULL,
   `no_aktivitas` int(2) NOT NULL,
+  `kode_aktivitas` char(10) NOT NULL,
   `sektor_tanam` varchar(3) NOT NULL,
   `blok_tanam` varchar(3) NOT NULL,
-  `kode_aktivitas` char(10) NOT NULL,
   `foto_aktivitas` varbinary(2000) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `bkm_harian`
---
-
-CREATE TABLE `bkm_harian` (
-  `no_bkm` char(10) NOT NULL,
-  `tgl_bkm` date NOT NULL,
-  `no_rkh` char(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -83,10 +83,10 @@ CREATE TABLE `bkm_harian` (
 
 CREATE TABLE `bkm_material` (
   `no_bkm` char(10) NOT NULL,
-  `no_material` int(2) NOT NULL,
   `no_aktivitas` int(2) NOT NULL,
+  `no_material` int(2) NOT NULL,
   `kode_material` char(10) NOT NULL,
-  `kuantitas` int(2) NOT NULL
+  `kuantitas` decimal(3,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -100,7 +100,7 @@ CREATE TABLE `bkm_pegawai` (
   `no_aktivitas` int(2) NOT NULL,
   `no_pegawai` int(2) NOT NULL,
   `id_pegawai` char(10) NOT NULL,
-  `hasil_kerja_riil` int(5) NOT NULL
+  `hasil_kerja_riil` decimal(3,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -170,7 +170,7 @@ CREATE TABLE `rkh` (
 --
 
 INSERT INTO `rkh` (`no_rkh`, `tgl_kegiatan`, `id_pegawai`) VALUES
-('26022018', '2018-02-26', '10011');
+('26022018', '2018-03-04', '10044');
 
 -- --------------------------------------------------------
 
@@ -191,7 +191,8 @@ CREATE TABLE `rkh_aktivitas` (
 --
 
 INSERT INTO `rkh_aktivitas` (`no_rkh`, `no_aktivitas`, `kode_aktivitas`, `sektor_tanam`, `blok_tanam`) VALUES
-('26022018', 1, 'BAAA01', 'A01', '01');
+('26022018', 1, 'BAAA01', 'A01', '01'),
+('26022018', 2, 'BCBB01', 'A02', '01');
 
 -- --------------------------------------------------------
 
@@ -210,7 +211,8 @@ CREATE TABLE `rkh_material` (
 --
 
 INSERT INTO `rkh_material` (`no_rkh`, `no_aktivitas`, `kode_material`) VALUES
-('26022018', 1, '22000464');
+('26022018', 1, '22000464'),
+('26022018', 2, '2600017');
 
 -- --------------------------------------------------------
 
@@ -231,7 +233,8 @@ CREATE TABLE `rkh_pegawai` (
 
 INSERT INTO `rkh_pegawai` (`no_rkh`, `no_aktivitas`, `id_pegawai`, `hasil_kerja_standar`) VALUES
 ('26022018', 1, '10011', '0.05'),
-('26022018', 1, '10012', '0.05');
+('26022018', 1, '10012', '0.05'),
+('26022018', 1, '10044', '1.00');
 
 -- --------------------------------------------------------
 
@@ -253,7 +256,7 @@ CREATE TABLE `user` (
 
 INSERT INTO `user` (`id_pegawai`, `username`, `password`, `api_key`, `created_at`) VALUES
 ('10001', 'admin', '$2a$10$f33de8f4f0fbe79bfe08euNIIzWRR7bOajTz5ltMznh7ZJZQEnI8O', '6232707875d8368c143ba51caa0de7a7', '2018-02-21 12:32:39'),
-('10044', 'dadre', '$2a$10$2768e494ca252e076547cervAXUbYmVg3U3DJkbKLYIMK8Zxq.Spq', 'd1c3df8030f0b1c68891363868256720', '2018-02-21 12:33:41');
+('10044', 'mandor1', '$2a$10$2768e494ca252e076547cervAXUbYmVg3U3DJkbKLYIMK8Zxq.Spq', 'd1c3df8030f0b1c68891363868256720', '2018-02-28 16:12:28');
 
 --
 -- Indexes for dumped tables
@@ -267,20 +270,20 @@ ALTER TABLE `aktivitas`
   ADD UNIQUE KEY `kode_aktivitas` (`kode_aktivitas`);
 
 --
+-- Indexes for table `bkm`
+--
+ALTER TABLE `bkm`
+  ADD PRIMARY KEY (`no_bkm`),
+  ADD UNIQUE KEY `no_bkm` (`no_bkm`),
+  ADD KEY `no_rkh` (`no_rkh`);
+
+--
 -- Indexes for table `bkm_aktivitas`
 --
 ALTER TABLE `bkm_aktivitas`
   ADD PRIMARY KEY (`no_aktivitas`),
   ADD KEY `kode_aktivitas` (`kode_aktivitas`),
   ADD KEY `no_bkm` (`no_bkm`);
-
---
--- Indexes for table `bkm_harian`
---
-ALTER TABLE `bkm_harian`
-  ADD PRIMARY KEY (`no_bkm`),
-  ADD UNIQUE KEY `no_bkm` (`no_bkm`),
-  ADD KEY `no_rkh` (`no_rkh`);
 
 --
 -- Indexes for table `bkm_material`
@@ -351,6 +354,8 @@ ALTER TABLE `rkh_pegawai`
 -- Indexes for table `user`
 --
 ALTER TABLE `user`
+  ADD PRIMARY KEY (`username`),
+  ADD UNIQUE KEY `username` (`username`),
   ADD KEY `id_pegawai` (`id_pegawai`);
 
 --
@@ -358,17 +363,17 @@ ALTER TABLE `user`
 --
 
 --
+-- Constraints for table `bkm`
+--
+ALTER TABLE `bkm`
+  ADD CONSTRAINT `bkm_ibfk_2` FOREIGN KEY (`no_rkh`) REFERENCES `rkh` (`no_rkh`) ON UPDATE CASCADE;
+
+--
 -- Constraints for table `bkm_aktivitas`
 --
 ALTER TABLE `bkm_aktivitas`
-  ADD CONSTRAINT `bkm_aktivitas_ibfk_2` FOREIGN KEY (`no_bkm`) REFERENCES `bkm_harian` (`no_bkm`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `bkm_aktivitas_ibfk_2` FOREIGN KEY (`no_bkm`) REFERENCES `bkm` (`no_bkm`) ON UPDATE CASCADE,
   ADD CONSTRAINT `bkm_aktivitas_ibfk_3` FOREIGN KEY (`kode_aktivitas`) REFERENCES `aktivitas` (`kode_aktivitas`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `bkm_harian`
---
-ALTER TABLE `bkm_harian`
-  ADD CONSTRAINT `bkm_harian_ibfk_2` FOREIGN KEY (`no_rkh`) REFERENCES `rkh` (`no_rkh`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `bkm_material`
@@ -376,7 +381,7 @@ ALTER TABLE `bkm_harian`
 ALTER TABLE `bkm_material`
   ADD CONSTRAINT `bkm_material_ibfk_1` FOREIGN KEY (`no_aktivitas`) REFERENCES `bkm_aktivitas` (`no_aktivitas`) ON UPDATE CASCADE,
   ADD CONSTRAINT `bkm_material_ibfk_2` FOREIGN KEY (`kode_material`) REFERENCES `material` (`kode_material`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `bkm_material_ibfk_3` FOREIGN KEY (`no_bkm`) REFERENCES `bkm_harian` (`no_bkm`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `bkm_material_ibfk_3` FOREIGN KEY (`no_bkm`) REFERENCES `bkm` (`no_bkm`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `bkm_pegawai`
@@ -384,7 +389,7 @@ ALTER TABLE `bkm_material`
 ALTER TABLE `bkm_pegawai`
   ADD CONSTRAINT `bkm_pegawai_ibfk_1` FOREIGN KEY (`id_pegawai`) REFERENCES `pegawai` (`id_pegawai`) ON UPDATE CASCADE,
   ADD CONSTRAINT `bkm_pegawai_ibfk_2` FOREIGN KEY (`no_aktivitas`) REFERENCES `bkm_aktivitas` (`no_aktivitas`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `bkm_pegawai_ibfk_3` FOREIGN KEY (`no_bkm`) REFERENCES `bkm_harian` (`no_bkm`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `bkm_pegawai_ibfk_3` FOREIGN KEY (`no_bkm`) REFERENCES `bkm` (`no_bkm`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `rkh`

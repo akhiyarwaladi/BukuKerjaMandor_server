@@ -131,14 +131,15 @@ class DbHandler {
      * Fetching user by email
      * @param String $email User email id
      */
-    public function getUserByEmail($username) {
-        $stmt = $this->conn->prepare("SELECT username, api_key, created_at FROM user WHERE username = ?");
+    public function getUserByUsername($username) {
+        $stmt = $this->conn->prepare("SELECT id_pegawai, username, api_key, created_at FROM user WHERE username = ?");
         $stmt->bind_param("s", $username);
         if ($stmt->execute()) {
             // $user = $stmt->get_result()->fetch_assoc();
-            $stmt->bind_result($username, $api_key, $created_at);
+            $stmt->bind_result($id_pegawai, $username, $api_key, $created_at);
             $stmt->fetch();
             $user = array();
+			$user["id_pegawai"] = $id_pegawai;
             $user["username"] = $username;
             $user["api_key"] = $api_key;
             $user["created_at"] = $created_at;
@@ -153,9 +154,9 @@ class DbHandler {
      * Fetching user api key
      * @param String $user_id user id primary key in user table
      */
-    public function getApiKeyById($user_id) {
-        $stmt = $this->conn->prepare("SELECT api_key FROM users WHERE id = ?");
-        $stmt->bind_param("i", $user_id);
+    public function getApiKeyById($username) {
+        $stmt = $this->conn->prepare("SELECT api_key FROM user WHERE username = ?");
+        $stmt->bind_param("i", $username);
         if ($stmt->execute()) {
             // $api_key = $stmt->get_result()->fetch_assoc();
             // TODO
@@ -299,7 +300,7 @@ class DbHandler {
         return $response;
     }
 	
-	/* ------------- `sektor tanam` table method ------------------ */
+	/* ------------- `rkh_aktivitas` table method ------------------ */
 	public function getRKHAktivitas($user_id) {
         $stmt = $this->conn->prepare("SELECT t.* FROM rkh_aktivitas t");
         $stmt->execute();
@@ -307,5 +308,99 @@ class DbHandler {
         $stmt->close();
         return $tasks;
     }
+	
+	/* ------------- `rkh_pegawai` table method ------------------ */
+	public function getRKHPegawai($user_id) {
+        $stmt = $this->conn->prepare("SELECT t.* FROM rkh_pegawai t");
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
+    }
+	
+	/* ------------- GET SQLite table method ------------------ */
+	public function getAktivitasSQLite($user_id) {
+        $stmt = $this->conn->prepare("SELECT * FROM aktivitas
+										WHERE kode_aktivitas = ANY(SELECT kode_aktivitas from rkh, rkh_aktivitas
+											WHERE rkh.no_rkh = rkh_aktivitas.no_rkh
+											AND (SELECT CURRENT_DATE()) = rkh.tgl_kegiatan
+												AND rkh.id_pegawai = ?)");
+		$stmt->bind_param("s", $user_id);
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
+    }
+
+	public function getMaterialSQLite($user_id){
+		$stmt = $this->conn->prepare("SELECT * FROM material
+										WHERE kode_material = ANY(SELECT kode_material from rkh, rkh_material
+											WHERE rkh.no_rkh = rkh_material.no_rkh
+											AND (SELECT CURRENT_DATE()) = rkh.tgl_kegiatan
+												AND rkh.id_pegawai = ?)");
+		$stmt->bind_param("s", $user_id);
+		$stmt->execute();
+		$tasks = $stmt->get_result();
+		$stmt->close();
+		return $tasks;
+	}
+	
+	public function getPegawaiSQLite($user_id){
+		$stmt = $this->conn->prepare("SELECT * FROM pegawai
+										WHERE pegawai.kode_mandoran = (SELECT kode_mandoran FROM pegawai WHERE id_pegawai = ?)");
+		$stmt->bind_param("s", $user_id);
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
+	}
+	
+	public function getRKHSQLite($user_id){
+				$stmt = $this->conn->prepare("SELECT * from rkh
+													WHERE rkh.id_pegawai = ?
+													AND (SELECT CURRENT_DATE()) = rkh.tgl_kegiatan");
+		$stmt->bind_param("s", $user_id);
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
+	}
+	
+	public function getRKHAktivitasSQLite($user_id){
+				$stmt = $this->conn->prepare("SELECT * from rkh_aktivitas
+												WHERE no_rkh = (SELECT no_rkh from rkh
+													WHERE rkh.id_pegawai = ?
+													AND (SELECT CURRENT_DATE()) = rkh.tgl_kegiatan)");
+		$stmt->bind_param("s", $user_id);
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
+	}
+	
+	public function getRKHMaterialSQLite($user_id){
+				$stmt = $this->conn->prepare("SELECT * from rkh_material
+												WHERE no_rkh = (SELECT no_rkh from rkh
+													WHERE rkh.id_pegawai = ?
+													AND (SELECT CURRENT_DATE()) = rkh.tgl_kegiatan)");
+		$stmt->bind_param("s", $user_id);
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
+	}
+	
+	public function getRKHPegawaiSQLite($user_id){
+				$stmt = $this->conn->prepare("SELECT * from rkh_pegawai
+												WHERE no_rkh = (SELECT no_rkh from rkh
+													WHERE rkh.id_pegawai = ?
+													AND (SELECT CURRENT_DATE()) = rkh.tgl_kegiatan)");
+		$stmt->bind_param("s", $user_id);
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
+	}
+	
 }
 ?>
